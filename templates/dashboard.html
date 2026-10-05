@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h3 class="fw-bold"><i class="bi bi-speedometer2"></i> Dashboard</h3>
+        <hr/>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <!-- Welcome Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="bi bi-person-check-fill"></i> Welcome, {{ user.agent_name or user.email }}!
+                </h5>
+                <p class="card-text">
+                    <i class="bi bi-envelope"></i> <strong>Email:</strong> {{ user.email }}
+                </p>
+                {% if user.agent_name %}
+                <p class="card-text">
+                    <i class="bi bi-building"></i> <strong>Agent Name:</strong> {{ user.agent_name }}
+                </p>
+                {% endif %}
+                {% if user.address %}
+                <p class="card-text">
+                    <i class="bi bi-geo-alt"></i> <strong>Address:</strong> {{ user.address }}
+                </p>
+                {% endif %}
+                <p class="card-text text-muted small">
+                    <i class="bi bi-calendar"></i> Account created: {{ user.created_at.strftime('%d-%b-%Y') if user.created_at else 'N/A' }}
+                </p>
+                <p class="card-text text-muted small">
+                    <i class="bi bi-clock"></i> Password last changed: {{ user.password_changed_at.strftime('%d-%b-%Y') if user.password_changed_at else 'N/A' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder for future form links -->
+    <!-- Placeholder for future form links -->
+<div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-success">
+                <i class="bi bi-ui-checks"></i> Quick Links
+            </h5>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('igm_list') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-file-earmark-text-fill text-primary"></i> House B/L Entry
+                </a>
+                {% if current_user.is_admin_user %}
+                <a href="{{ url_for('user_list') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-people-fill text-warning"></i> Manage Users
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

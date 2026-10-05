@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit IGM' if edit else 'New IGM / B/L Entry' }}{% endblock %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col">
+        <h3 class="fw-bold">
+            <i class="bi bi-file-earmark-text-fill"></i>
+            {{ 'Edit IGM #' + igm.igm_id|string if edit else 'New IGM / B/L Entry' }}
+            {% if edit and igm.is_locked == 'Y' %}
+                <span class="badge bg-danger ms-2"><i class="bi bi-lock-fill"></i> Locked</span>
+            {% endif %}
+        </h3>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('igm_list') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+<hr/>
+
+<form method="POST" action="{{ url_for('igm_edit', igm_id=igm.igm_id) if edit else url_for('igm_new') }}" novalidate>
+
+    {% macro val(field) %}{{ (form_data[field] if form_data else (igm[field] if edit and igm and igm[field] else '')) if true else '' }}{% endmacro %}
+
+    <!-- ==================== B/L INFORMATION ==================== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-semibold">
+            <i class="bi bi-file-text"></i> B/L Information
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Created By</label>
+                    <input type="text" class="form-control" value="{{ current_user.email }}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Master B/L No</label>
+                    <input type="text" name="m_bl_no" class="form-control" maxlength="30"
+                        value="{{ form_data.m_bl_no if form_data else (igm.m_bl_no if edit and igm else '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">B/L No</label>
+                    <input type="text" name="bl_no" class="form-control" maxlength="30"
+                        value="{{ form_data.bl_no if form_data else (igm.bl_no if edit and igm else '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">B/L Date</label>
+                    <input type="date" name="bl_date" class="form-control"
+                        value="{{ form_data.bl_date if form_data else (igm.bl_date.strftime('%Y-%m-%d') if edit and igm and igm.bl_date else '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">POL</label>
+                    <select name="pol" class="form-select">
+                        <option value="">-- Select --</option>
+                        {% for p in ports %}
+                        <option value="{{ p.prt_code.strip() }}"
+                            {{ 'selected' if (form_data and form_data.pol == p.prt_code.strip()) or (edit and igm and igm.pol == p.prt_code.strip()) }}>
+                            {{ p.name.strip() if p.name else p.prt_code.strip() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">POD</label>
+                    <select name="pod" class="form-select">
+                        <option value="">-- Select --</option>
+                        {% for p in ports %}
+                        {% set selected_pod = (form_data.pod if form_data else (igm.pod if edit and igm else 'PKKHI')) %}
+                        <option value="{{ p.prt_code.strip() }}"
+                            {{ 'selected' if selected_pod == p.prt_code.strip() }}>
+                            {{ p.name.strip() if p.name else p.prt_code.strip() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Freight Amount</label>
+                    <input type="number" step="0.01" name="fright_con" class="form-control"
+                        value="{{ form_data.fright_con if form_data else (igm.fright_con if edit and igm else '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Freight Type</label>
+                    <select name="frieght_type" class="form-select">
+                        <option value="">-- Select --</option>
+                        <option value="P" {{ 'selected' if (form_data and form_data.frieght_type == 'P') or (edit and igm and igm.frieght_type == 'P') }}>Prepaid</option>
+                        <option value="C" {{ 'selected' if (form_data and form_data.frieght_type == 'C') or (edit and igm and igm.frieght_type == 'C') }}>Collect</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Manifest Type</label>
+                    <select name="manifest_type" class="form-select">
+                        <option value="">-- Select --</option>
+                        {% for mt in ['General','DG','EPZ','PERSONAL EFFECT'] %}
+                        <option value="{{ mt }}" {{ 'selected' if (form_data and form_data.manifest_type == mt) or (edit and igm and igm.manifest_type == mt) }}>{{ mt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SHIPPER ==================== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-success text-white fw-semibold">
+            <i class="bi bi-box-seam"></i> Shipper Details
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Shipper Name</label>
+                    <input type="text" name="shp_name" class="form-control" maxlength="60"
+                        value="{{ form_data.shp_name if form_data else (igm.shp_name if edit and igm else '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Country</label>
+                    <input type="text" name="shp_country" class="form-control text-uppercase" maxlength="5"
+                        value="{{ form_data.shp_country if form_data else (igm.shp_country if edit and igm else '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Address Line 1</label>
+                    <input type="text" name="shp_adr1" class="form-control" maxlength="60"
+                        value="{{ form_data.shp_adr1 if form_data else (igm.shp_adr1 if edit and igm else '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Address Line 2</label>
+                    <input type="text" name="shp_adr2" class="form-control" maxlength="60"
+                        value="{{ form_data.shp_adr2 if form_data else (igm.shp_adr2 if edit and igm else '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Address Line 3</label>
+                    <input type="text" name="shp_adr3" class="form-control" maxlength="60"
+                        value="{{ form_data.shp_adr3 if form_data else (igm.shp_adr3 if edit and igm else '') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CONSIGNEE ==================== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-info text-white fw-semibold">
+            <i class="bi bi-person-lines-fill"></i> Consignee Details
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Consignee Name</label>
+                    <input type="text" name="cne_name" class="form-control" maxlength="60"
+                        value="{{ form_data.cne_name if form_data else (igm.cne_name if edit and igm else '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">NTN</label>
+                    <input type="text" name="cne_ntn" class="form-control" maxlength="20"
+                        value="{{ form_data.cne_ntn if form_data else (igm.cne_ntn if edit and igm else '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Address Line 1</label>
+                    <input type="text" name="cne_adr1" class="form-control" maxlength="60"
+                        value="{{ form_data.cne_adr1 if form_data else (igm.cne_adr1 if edit and igm else '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Address Line 2</label>
+                    <input type="text" name="cne_adr2" class="form-control" maxlength="60"
+                        value="{{ form_data.cne_adr2 if form_data else (igm.cne_adr2 if edit and igm else '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Address Line 3</label>
+                    <input type="text" name="cne_adr3" class="form-control" maxlength="60"
+                        value="{{ form_data.cne_adr3 if form_data else (igm.cne_adr3 if edit and igm else '') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== GOODS ==================== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white fw-semibold">
+            <i class="bi bi-boxes"></i> Goods Details
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Commodity</label>
+                    <input type="text" name="commodity" class="form-control" maxlength="20"
+                        value="{{ form_data.commodity if form_data else (igm.commodity if edit and igm else '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">HS Code</label>
+                    <input type="text" name="hs_code" class="form-control" maxlength="20"
+                        value="{{ form_data.hs_code if form_data else (igm.hs_code if edit and igm else '') }}">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Description of Goods</label>
+                    <textarea name="dsc_of_goods" class="form-control" rows="3" maxlength="500">{{ form_data.dsc_of_goods if form_data else (igm.dsc_of_goods if edit and igm else '') }}</textarea>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Marks & Numbers</label>
+                    <textarea name="marks" class="form-control" rows="2" maxlength="200">{{ form_data.marks if form_data else (igm.marks if edit and igm else '') }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CONTAINERS ==================== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white fw-semibold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-truck"></i> Container Details</span>
+            <button type="button" class="btn btn-sm btn-light" id="addRow">
+                <i class="bi bi-plus-circle"></i> Add Row
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm mb-0" id="cntTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Container No</th>
+                            <th>Seal No</th>
+                            <th>Size</th>
+                            <th>Type</th>
+                            <th>Term</th>
+                            <th>Pkg Type</th>
+                            <th>No. of Pkgs</th>
+                            <th>Net Wt</th>
+                            <th>Gross Wt</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cntBody">
+                        {% if edit and igm and igm.containers %}
+                            {% for c in igm.containers %}
+                            <tr>
+                                <td class="text-center sr-cell">{{ loop.index }}</td>
+                                <td><input type="text" name="cnt_no" class="form-control form-control-sm" maxlength="11" value="{{ c.cnt_no or '' }}"></td>
+                                <td><input type="text" name="seal_no" class="form-control form-control-sm" maxlength="30" value="{{ c.seal_no or '' }}"></td>
+                                <td>
+                                    <select name="cnt_size" class="form-select form-select-sm">
+                                        <option value="">--</option>
+                                        <option value="20" {{ 'selected' if c.size == '20' }}>20'</option>
+                                        <option value="40" {{ 'selected' if c.size == '40' }}>40'</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="cnt_type" class="form-select form-select-sm">
+                                        <option value="">--</option>
+                                        <option value="SD" {{ 'selected' if c.type == 'SD' }}>SD</option>
+                                        <option value="HQ" {{ 'selected' if c.type == 'HQ' }}>HQ</option>
+                                        <option value="RF" {{ 'selected' if c.type == 'RF' }}>RF</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="term" class="form-select form-select-sm">
+                                        <option value="">--</option>
+                                        <option value="FCL/FCL" {{ 'selected' if c.term == 'FCL/FCL' }}>FCL/FCL</option>
+                                        <option value="FCL/LCL" {{ 'selected' if c.term == 'FCL/LCL' }}>FCL/LCL</option>
+                                        <option value="FCL/SOC" {{ 'selected' if c.term == 'FCL/SOC' }}>FCL/SOC</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="packages" class="form-select form-select-sm">
+                                        <option value="">--</option>
+                                        {% for p in packages %}
+                                        <option value="{{ p.pkg_code.strip() }}" {{ 'selected' if c.packages == p.pkg_code.strip() }}>{{ p.pkg_code.strip() }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td><input type="number" name="no_of_pkgs" class="form-control form-control-sm" value="{{ c.no_of_pkgs or '' }}"></td>
+                                <td><input type="number" step="0.01" name="net_weight" class="form-control form-control-sm" value="{{ c.net_weight or '' }}"></td>
+                                <td><input type="number" step="0.01" name="gross_weight" class="form-control form-control-sm" value="{{ c.gross_weight or '' }}"></td>
+                                <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td class="text-center sr-cell">1</td>
+                            <td><input type="text" name="cnt_no" class="form-control form-control-sm" maxlength="11"></td>
+                            <td><input type="text" name="seal_no" class="form-control form-control-sm" maxlength="30"></td>
+                            <td>
+                                <select name="cnt_size" class="form-select form-select-sm">
+                                    <option value="">--</option>
+                                    <option value="20">20'</option>
+                                    <option value="40">40'</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="cnt_type" class="form-select form-select-sm">
+                                    <option value="">--</option>
+                                    <option value="SD">SD</option>
+                                    <option value="HQ">HQ</option>
+                                    <option value="RF">RF</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="term" class="form-select form-select-sm">
+                                    <option value="">--</option>
+                                    <option value="FCL/FCL">FCL/FCL</option>
+                                    <option value="FCL/LCL">FCL/LCL</option>
+                                    <option value="FCL/SOC">FCL/SOC</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="packages" class="form-select form-select-sm">
+                                    <option value="">--</option>
+                                    {% for p in packages %}
+                                    <option value="{{ p.pkg_code.strip() }}">{{ p.pkg_code.strip() }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><input type="number" name="no_of_pkgs" class="form-control form-control-sm"></td>
+                            <td><input type="number" step="0.01" name="net_weight" class="form-control form-control-sm"></td>
+                            <td><input type="number" step="0.01" name="gross_weight" class="form-control form-control-sm"></td>
+                            <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SUBMIT ==================== -->
+    <div class="d-flex gap-2 mb-5">
+        <button type="submit" class="btn btn-primary px-5">
+            <i class="bi bi-save-fill"></i> {{ 'Update IGM' if edit else 'Save IGM' }}
+        </button>
+        <a href="{{ url_for('igm_list') }}" class="btn btn-secondary px-4">
+            <i class="bi bi-x-circle"></i> Cancel
+        </a>
+    </div>
+
+</form>
+
+<script>
+const packageOptions = `<option value="">--</option>{% for p in packages %}<option value="{{ p.pkg_code.strip() }}">{{ p.pkg_code.strip() }}</option>{% endfor %}`;
+
+function newRow(sr) {
+    return `<tr>
+        <td class="text-center sr-cell">${sr}</td>
+        <td><input type="text" name="cnt_no" class="form-control form-control-sm" maxlength="11"></td>
+        <td><input type="text" name="seal_no" class="form-control form-control-sm" maxlength="30"></td>
+        <td><select name="cnt_size" class="form-select form-select-sm"><option value="">--</option><option value="20">20'</option><option value="40">40'</option></select></td>
+        <td><select name="cnt_type" class="form-select form-select-sm"><option value="">--</option><option value="SD">SD</option><option value="HQ">HQ</option><option value="RF">RF</option></select></td>
+        <td><select name="term" class="form-select form-select-sm"><option value="">--</option><option value="FCL/FCL">FCL/FCL</option><option value="FCL/LCL">FCL/LCL</option><option value="FCL/SOC">FCL/SOC</option></select></td>
+        <td><select name="packages" class="form-select form-select-sm">${packageOptions}</select></td>
+        <td><input type="number" name="no_of_pkgs" class="form-control form-control-sm"></td>
+        <td><input type="number" step="0.01" name="net_weight" class="form-control form-control-sm"></td>
+        <td><input type="number" step="0.01" name="gross_weight" class="form-control form-control-sm"></td>
+        <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+    </tr>`;
+}
+
+document.getElementById('addRow').addEventListener('click', function () {
+    const tbody = document.getElementById('cntBody');
+    const sr = tbody.rows.length + 1;
+    tbody.insertAdjacentHTML('beforeend', newRow(sr));
+});
+
+document.getElementById('cntBody').addEventListener('click', function (e) {
+    if (e.target.closest('.remove-row')) {
+        e.target.closest('tr').remove();
+        document.querySelectorAll('#cntBody .sr-cell').forEach((td, i) => {
+            td.textContent = i + 1;
+        });
+    }
+});
+
+document.querySelectorAll('.text-uppercase').forEach(el => {
+    el.addEventListener('input', function() {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+    });
+});
+</script>
+{% endblock %}

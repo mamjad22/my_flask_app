@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+
+                <!-- Logo / Title -->
+                <div class="text-center mb-4">
+                    <i class="bi bi-lock-fill fs-1 text-primary"></i>
+                    <h4 class="mt-2 fw-bold">Sign In</h4>
+                    <p class="text-muted small">Enter your credentials to continue</p>
+                </div>
+
+                <!-- Login Form -->
+                <form method="POST" action="{{ url_for('login') }}" novalidate>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="form-control"
+                                placeholder="you@example.com"
+                                required
+                                autofocus
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-key"></i></span>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                class="form-control"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- Footer note -->
+        <p class="text-center text-muted small mt-3">
+            &copy; {{ now.year if now else '2026' }} Riazeda Pvt Ltd. All rights reserved.
+        </p>
+
+    </div>
+</div>
+{% endblock %}

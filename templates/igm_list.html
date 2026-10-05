@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}IGM List{% endblock %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col">
+        <h3 class="fw-bold"><i class="bi bi-file-earmark-text-fill"></i> IGM / B/L List</h3>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('igm_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle-fill"></i> New IGM
+        </a>
+    </div>
+</div>
+<hr/>
+
+<div class="card border-0 shadow-sm mt-2">
+    <div class="card-body p-0">
+        <table class="table table-hover table-striped mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>M B/L No</th>
+                    <th>B/L No</th>
+                    <th>B/L Date</th>
+                    <th>POL</th>
+                    <th>POD</th>
+                    <th>Manifest</th>
+                    <th>Shipper</th>
+                    <th>Consignee</th>
+                    <th>CNT</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for igm in igms %}
+                <tr>
+                    <td>{{ igm.m_bl_no or '—' }}</td>
+                    <td><strong>{{ igm.bl_no or '—' }}</strong></td>
+                    <td>{{ igm.bl_date.strftime('%d-%b-%Y') if igm.bl_date else '—' }}</td>
+                    <td>{{ igm.pol or '—' }}</td>
+                    <td>{{ igm.pod or '—' }}</td>
+                    <td>
+                        {% if igm.manifest_type %}
+                            <span class="badge bg-info text-dark">{{ igm.manifest_type }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ igm.shp_name or '—' }}</td>
+                    <td>{{ igm.cne_name or '—' }}</td>
+                    <td><span class="badge bg-secondary">{{ igm.containers|length }}</span></td>
+                    <td>
+                        {% if igm.is_locked == 'Y' %}
+                            <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Locked</span>
+                        {% else %}
+                            <span class="badge bg-success"><i class="bi bi-unlock-fill"></i> Open</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <!-- Edit button -->
+                            {% if current_user.is_admin_user or (igm.created_by == current_user.email and igm.is_locked != 'Y') %}
+                            <a href="{{ url_for('igm_edit', igm_id=igm.igm_id) }}"
+                                class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            {% endif %}
+
+                            <!-- Lock/Unlock button (admin only) -->
+                            {% if current_user.is_admin_user %}
+                            <form method="POST" action="{{ url_for('igm_lock', igm_id=igm.igm_id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm {{ 'btn-secondary' if igm.is_locked == 'Y' else 'btn-danger' }}"
+                                    title="{{ 'Unlock' if igm.is_locked == 'Y' else 'Lock' }}">
+                                    <i class="bi bi-{{ 'lock-fill' if igm.is_locked == 'Y' else 'unlock-fill' }}"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            <!-- Print PDF -->
+                            <a href="{{ url_for('igm_pdf', igm_id=igm.igm_id) }}" target="_blank"
+                                class="btn btn-sm btn-danger" title="Print B/L">
+                                <i class="bi bi-file-pdf-fill"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11" class="text-center text-muted py-4">
+                        No IGM records found. <a href="{{ url_for('igm_new') }}">Create one</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
